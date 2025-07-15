@@ -14,7 +14,7 @@ export default function ClientTable({ token }) {
         const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/forms`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setClients(res.data);
+        setClients(res.data.reverse());
       } catch (err) {
         console.error('Error fetching clients:', err);
       }
