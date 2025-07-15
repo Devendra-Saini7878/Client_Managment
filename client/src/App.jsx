@@ -1,0 +1,48 @@
+import React, { useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import Sidebar from './components/Sidebar';
+import AddDataForm from './components/AddDataForm';
+import ClientTable from './components/ClientTable';
+import Login from './components/Login';
+import Register from './components/Register';
+import ChannelSummary from './components/ChannelSummary';
+import { useUserContext } from './context/UserContext';
+
+export default function App() {
+  const { token } = useUserContext();         // ✅ Get token from context
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!token && location.pathname !== '/login' && location.pathname !== '/register') {
+      navigate('/login');
+    }
+  }, [token, location.pathname, navigate]);
+
+  // While logged out
+  if (!token) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="*" element={<Navigate to="/login" />} />
+      </Routes>
+    );
+  }
+
+  // If logged in
+  return (
+    <div className="flex w-full max-h-screen bg-gray-100 overflow-y-hidden ">
+      <Sidebar />
+      <div className="flex-1  p-0">
+        <Routes>
+          <Route path="/" element={<Navigate to="/client" />} />
+          <Route path="/add" element={<AddDataForm token={token} />} />
+          <Route path="/client" element={<ClientTable token={token} />} />
+          <Route path="/channel-summary" element={<ChannelSummary token={token} />} />
+        </Routes>
+      </div>
+    </div>
+  );
+}
