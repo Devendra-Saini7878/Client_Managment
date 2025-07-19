@@ -5,14 +5,21 @@ const formSchema = new mongoose.Schema({
   clientName: String,
   title: String,
   date: String,
-  datePayment: String,
   defaultType: String,
   videoType: String,
   posterQuality: String,
   audioType: String,
   price: Number,
   paymentStatus: String,
-  userId: String
+  amountPaid: {
+    type: Number,
+    default: 0
+  },
+  amountDue: {
+    type: Number,
+    default: 0
+  },
+  userId: String,
 });
 
 export default mongoose.model('FormData', formSchema);

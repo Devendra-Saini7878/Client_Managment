@@ -8,7 +8,6 @@
             clientName: '',
             title: '',
             date: '',
-            datePayment: '',
             defaultType: '',
             videoType: '',
             posterQuality: '',
@@ -56,7 +55,7 @@
             if (!manualPrice) {
                 if (name === 'videoType' && formData.defaultType === 'video') {
                     updated.price = setAutoPrice('video', value);
-                }
+                }       
                 if (name === 'posterQuality' && formData.defaultType === 'poster') {
                     updated.price = setAutoPrice('poster', value);
                 }
@@ -75,6 +74,7 @@
 
         const handleSubmit = async (e) => {
             e.preventDefault();
+            console.log(formData);
             try {
                 await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/forms`, formData, {
                     headers: { Authorization: `Bearer ${token}` },
@@ -86,7 +86,6 @@
                     clientName: '',
                     title: '',
                     date: '',
-                    datePayment: '',
                     defaultType: '',
                     videoType: '',
                     posterQuality: '',
@@ -151,18 +150,7 @@
                             className="input border border-gray-300 p-2 rounded"
                         />
                     </div>
-                    <div className="flex flex-col">
-                        <label htmlFor="datePayment" className="mb-1 font-medium text-gray-700">Payment Date</label>
-                        <input
-                            id="datePayment"
-                            type="date"
-                            name="datePayment"
-                            required
-                            value={formData.datePayment}
-                            onChange={handleChange}
-                            className="input border border-gray-300 p-2 rounded"
-                        />
-                    </div>
+                    
                     <div className="flex flex-col">
                         <label htmlFor="defaultType" className="mb-1 font-medium text-gray-700">Default Type</label>
                         <select

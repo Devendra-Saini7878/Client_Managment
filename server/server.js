@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import formRoutes from './routes/formRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import auth from './middleware/auth.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -23,6 +24,7 @@ app.use('/api/auth', authRoutes);
 
 // Protected Routes
 app.use('/api/forms', auth, formRoutes); 
+app.use('/api/payment', auth, paymentRoutes);
 
 mongoose.connect(`${process.env.MONGO_URI}/formData`)
   .then(() => {

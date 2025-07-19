@@ -7,6 +7,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import ChannelSummary from './components/ChannelSummary';
 import { useUserContext } from './context/UserContext';
+import PaymentHistory from './components/PaymentHistory';
 
 export default function App() {
   const { token } = useUserContext();         // ✅ Get token from context
@@ -41,6 +42,8 @@ export default function App() {
           <Route path="/add" element={<AddDataForm token={token} />} />
           <Route path="/client" element={<ClientTable token={token} />} />
           <Route path="/channel-summary" element={<ChannelSummary token={token} />} />
+          <Route path="/payment-history" element={<PaymentHistory token={token} />} />
+
         </Routes>
       </div>
     </div>

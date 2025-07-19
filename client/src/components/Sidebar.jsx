@@ -33,6 +33,11 @@ export default function Sidebar() {
               Channel
             </button>
           </li>
+          <li>
+            <button onClick={() => navigate('/payment-history')} className="w-full text-left hover:bg-gray-200 p-2 rounded">
+              Payment History
+            </button>
+          </li>
         </ul>
       </div>
 
