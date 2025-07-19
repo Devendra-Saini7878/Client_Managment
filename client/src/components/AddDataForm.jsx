@@ -74,12 +74,12 @@
 
         const handleSubmit = async (e) => {
             e.preventDefault();
-            console.log(formData);
+            // console.log(formData);
             try {
                 await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/forms`, formData, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
-                console.log('Form submitted:', formData);
+                // console.log('Form submitted:', formData);
                 toast.success('Data submitted!');
                 setFormData({
                     channelName: '',

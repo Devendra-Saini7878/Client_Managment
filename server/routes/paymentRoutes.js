@@ -24,7 +24,6 @@ router.post("/pay", auth, async (req, res) => {
     }).sort({ date: 1 });
 
     if (!entries || entries.length === 0) {
-      console.log("No unpaid entries found for this channel");
       return res
         .status(404)
         .json({ message: "No unpaid entries found for this channel" });
@@ -69,7 +68,6 @@ router.post("/pay", auth, async (req, res) => {
 
           price: { $ne: 0 },
         });
-        console.log(updated[0], 'first updated entry');
 
 
       
@@ -77,7 +75,6 @@ router.post("/pay", auth, async (req, res) => {
         const paid = updated.reduce((sum, e) => sum + (e.amountPaid || 0), 0);
         const due = total - paid;
         const clientName = entries[0]?.clientName || "Unknown";
-        console.log(clientName, 'clientName');
 
         await PaymentHistory.create({
           channelName,
@@ -89,7 +86,6 @@ router.post("/pay", auth, async (req, res) => {
           paidBy: req.user.email || "Unknown",
           userId: req.user.id,
         });
-      console.log(clientName, 'clientName');
         return res.status(200).json({
           message: "Payment recorded.",
           updatedEntries: updated,
@@ -100,7 +96,6 @@ router.post("/pay", auth, async (req, res) => {
   
   
   catch (err) {
-    console.error("Payment error:", err);
     res.status(500).json({ message: "Payment failed." });
   }
 });
@@ -108,7 +103,6 @@ router.post("/pay", auth, async (req, res) => {
 // ✅ Route to mark all dues as paid
 router.post("/pay-all", auth, async (req, res) => {
   const { channelName, method = "cash" } = req.body;
-  console.log(req.body);
 
   if (!channelName)
     return res.status(400).json({ message: "Channel name is required" });
@@ -129,13 +123,12 @@ router.post("/pay-all", auth, async (req, res) => {
 
     for (let entry of entries) {
       const remainingDue = entry.price - (entry.amountPaid || 0);
-      
       entry.paymentStatus = "yes";
       entry.datePayment = new Date();
       entry.amountPaid = entry.price;
       entry.amountDue = 0;
 
-      totalAmountPaid += remainingDue;
+      totalAmountPaid += entry.price;
       
       await entry.save();
     }
@@ -165,10 +158,7 @@ router.post("/pay-all", auth, async (req, res) => {
     const paid = updated.reduce((sum, e) => sum + (e.amountPaid || 0), 0);
     const due = total - paid;
 
-    console.log("Total:", total);
-    console.log("Paid:", paid);
-    console.log("Due:", due);
-    console.log("Updated entries:", updated);
+
 
     res.json({
       message: "All dues cleared.",
@@ -177,7 +167,6 @@ router.post("/pay-all", auth, async (req, res) => {
     });
 
   } catch (err) {
-    console.error("Pay all failed:", err);
     res.status(500).json({ message: "Error clearing dues." });
   }
 });
