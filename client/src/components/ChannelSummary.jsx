@@ -24,9 +24,10 @@ export default function ChannelSummary({ token, onPaymentSuccess }) {
       const total = filtered.reduce((sum, e) => sum + Number(e.price || 0), 0);
       const paid = filtered.reduce((sum, e) => sum + Number(e.amountPaid || 0), 0);
       const due = total - paid;
-
       setSummary({ total, paid, due });
+      
     } catch (err) {
+      console.log(err);
       toast.error('Error fetching channel data');
     }
   };
@@ -42,6 +43,7 @@ export default function ChannelSummary({ token, onPaymentSuccess }) {
         headers: { Authorization: `Bearer ${token}` }
       });
 
+      console.log("✅ Payment API response:", res.data);
 
       if (res.data?.updatedEntries && res.data?.updatedSummary) {
         setEntries(res.data.updatedEntries);
@@ -57,36 +59,25 @@ export default function ChannelSummary({ token, onPaymentSuccess }) {
   };
 
   const handlePayAll = async () => {
-    if (!channelName.trim()) {
-      return toast.error("Enter a valid channel name to pay all dues");
-    }
-  
+    if (!channelName) return toast.error("Enter channel name to pay all dues");
     try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/payment/pay-all`,
-        {
-          channelName: channelName.trim(),
-          method,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-  
-      // ✅ Backend must return updated entries and summary
-      if (res.data?.updatedEntries && res.data?.updatedSummary) {
-        setEntries(res.data.updatedEntries);
-        setSummary(res.data.updatedSummary);
-        toast.success("All dues cleared successfully");
-      } else {
-        toast.error("Unexpected response from server");
-      }
+      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/payment/pay-all`, {
+        channelName,
+        method
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setEntries(res.data.updatedEntries);
+      setSummary(res.data.updatedSummary);
+      toast.success('All dues cleared successfully');
     } catch (err) {
-      console.error("Pay All Error:", err?.response?.data || err.message);
-      toast.error(err?.response?.data?.message || "❌ Pay All failed");
+      console.log(err);
+      toast.error('Pay All failed');
     }
   };
   
+
   return (
     <div className="max-w-6xl mx-auto p-4">
       <form
@@ -136,7 +127,7 @@ export default function ChannelSummary({ token, onPaymentSuccess }) {
                       <td className="p-2 border">{entry.date}</td>
                       <td className="p-2 border">{entry.defaultType}</td>
                       <td className="p-2 border">₹{entry.price}</td>
-                      <td className="p-2 border">₹{entry.amountPaid || 0}</td>
+                      <td className="p-2 border">₹{entry.amountPaid || 0}</td>  
                       <td className="p-2 border">₹{entry.amountDue || 0}</td>
                       <td className="p-2 border">
                         <span
@@ -162,15 +153,15 @@ export default function ChannelSummary({ token, onPaymentSuccess }) {
             <div className="flex flex-col items-center sm:items-start gap-2 w-full sm:w-auto">
               <p className="text-lg font-bold text-blue-700">
                 <span className="mr-2">Total:</span>
-                <span className="text-gray-900">₹{entries.reduce((sum, e) => sum + Number(e.price || 0), 0)}</span>
+                <span className="text-gray-900">₹{summary?.total || 0}</span>
               </p>
               <p className="text-lg font-bold text-green-700">
                 <span className="mr-2">Paid:</span>
-                <span className="text-gray-900">₹{entries.reduce((sum, e) => sum + Number(e.amountPaid || 0), 0)}</span>
+                <span className="text-gray-900">₹{summary?.paid || 0}</span>
               </p>
               <p className="text-lg font-bold text-red-600">
                 <span className="mr-2">Due:</span>
-                <span className="text-gray-900">₹{entries.reduce((sum, e) => sum + Number(e.amountDue || 0), 0)}</span>
+                <span className="text-gray-900">₹{summary?.due || 0}</span>
               </p>
             </div>
           </div>

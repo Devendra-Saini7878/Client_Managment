@@ -101,6 +101,7 @@ router.post("/pay", auth, async (req, res) => {
 });
 
 // ✅ Route to mark all dues as paid
+// ✅ Route to mark all dues as paid
 router.post("/pay-all", auth, async (req, res) => {
   const { channelName, method = "cash" } = req.body;
 
@@ -115,26 +116,27 @@ router.post("/pay-all", auth, async (req, res) => {
       paymentStatus: { $in: ["no", "partial"] }
     }).sort({ date: 1 });
 
-    if (!entries || entries.length === 0) {
-      return res.status(404).json({ message: "No unpaid entries found" });
-    }
-
     let totalAmountPaid = 0;
 
     for (let entry of entries) {
-      const remainingDue = entry.price - (entry.amountPaid || 0);
-      entry.paymentStatus = "yes";
-      entry.datePayment = new Date();
-      entry.amountPaid = entry.price;
-      entry.amountDue = 0;
+      const alreadyPaid = entry.amountPaid || 0;
+      const remainingDue = entry.price - alreadyPaid;
 
-      totalAmountPaid += entry.price;
-      
-      await entry.save();
+      if (remainingDue > 0) {
+        entry.paymentStatus = "yes";
+        entry.datePayment = new Date();
+        entry.amountPaid = alreadyPaid + remainingDue;
+        entry.amountDue = 0;
+
+        totalAmountPaid += remainingDue;
+
+        await entry.save();
+      }
     }
+
     const clientName = entries[0]?.clientName || "Unknown";
 
-
+    // Only create history if some payment was made
     if (totalAmountPaid > 0) {
       await PaymentHistory.create({
         channelName,
@@ -144,7 +146,7 @@ router.post("/pay-all", auth, async (req, res) => {
         paymentDate: new Date(),
         paidBy: req.user.email || "Unknown",
         userId: req.user.id,
-        
+        amountDue: 0 // All dues are cleared
       });
     }
 
@@ -158,8 +160,6 @@ router.post("/pay-all", auth, async (req, res) => {
     const paid = updated.reduce((sum, e) => sum + (e.amountPaid || 0), 0);
     const due = total - paid;
 
-
-
     res.json({
       message: "All dues cleared.",
       updatedEntries: updated,
@@ -167,9 +167,11 @@ router.post("/pay-all", auth, async (req, res) => {
     });
 
   } catch (err) {
+    console.error("Pay-All Error:", err);
     res.status(500).json({ message: "Error clearing dues." });
   }
 });
+
 
 
 // ✅ Payment History
