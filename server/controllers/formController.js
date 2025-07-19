@@ -1,11 +1,26 @@
 import FormData from '../models/FormData.js';
 
 export const createForm = async (req, res) => {
-  const data = { ...req.body, userId: req.user.id };
-  console.log(data);
-  const form = await FormData.create(data);
-  res.status(201).json(form);
+  try {
+    let data = { ...req.body, userId: req.user.id };
+
+    // Set amountPaid and amountDue based on paymentStatus
+    if (data.paymentStatus === 'yes') {
+      data.amountPaid = data.price;
+      data.amountDue = 0;
+    } else {
+      data.amountPaid = 0;
+      data.amountDue = data.price;
+    }
+
+    const form = await FormData.create(data);
+    res.status(201).json(form);
+  } catch (err) {
+    console.error("Error creating form:", err);
+    res.status(500).json({ message: "Failed to create form" });
+  }
 };
+
 
 export const getForms = async (req, res) => {
   const forms = await FormData.find({ userId: req.user.id });
