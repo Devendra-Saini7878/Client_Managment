@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-export default function ChannelSummary({ token, onPaymentSuccess }) {
+export default function ChannelSummary({ token }) {
   const [channelName, setChannelName] = useState('');
   const [entries, setEntries] = useState([]);
   const [summary, setSummary] = useState(null);
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState('cash');
+  const [history, setHistory] = useState([]);
 
   const fetchChannelData = async () => {
     try {
@@ -25,10 +26,24 @@ export default function ChannelSummary({ token, onPaymentSuccess }) {
       const paid = filtered.reduce((sum, e) => sum + Number(e.amountPaid || 0), 0);
       const due = total - paid;
       setSummary({ total, paid, due });
-      
+
+      fetchPaymentHistory(); // Fetch history also
+
     } catch (err) {
       console.log(err);
       toast.error('Error fetching channel data');
+    }
+  };
+
+  const fetchPaymentHistory = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/payment/history`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { channelName }
+      });
+      setHistory(res.data);
+    } catch (err) {
+      console.error("Error fetching payment history", err);
     }
   };
 
@@ -43,15 +58,12 @@ export default function ChannelSummary({ token, onPaymentSuccess }) {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      console.log("✅ Payment API response:", res.data);
-
       if (res.data?.updatedEntries && res.data?.updatedSummary) {
         setEntries(res.data.updatedEntries);
         setSummary(res.data.updatedSummary);
-      } else {
-        toast.error("Unexpected response from server.");
+        fetchPaymentHistory();
       }
-          toast.success('Partial payment successful');
+      toast.success('Partial payment successful');
     } catch (err) {
       console.log(err);
       toast.error('Payment failed');
@@ -70,13 +82,13 @@ export default function ChannelSummary({ token, onPaymentSuccess }) {
 
       setEntries(res.data.updatedEntries);
       setSummary(res.data.updatedSummary);
+      fetchPaymentHistory();
       toast.success('All dues cleared successfully');
     } catch (err) {
       console.log(err);
       toast.error('Pay All failed');
     }
   };
-  
 
   return (
     <div className="max-w-6xl mx-auto p-4">
@@ -166,7 +178,7 @@ export default function ChannelSummary({ token, onPaymentSuccess }) {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex flex-wrap gap-2 items-center mb-6">
             <input
               type="number"
               placeholder="Enter amount"
@@ -197,6 +209,36 @@ export default function ChannelSummary({ token, onPaymentSuccess }) {
               Pay All
             </button>
           </div>
+
+          {history.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Payment History</h3>
+              <div className="overflow-auto max-h-60 border rounded">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-100 sticky top-0">
+                    <tr>
+                      <th className="p-2 border">Date</th>
+                      <th className="p-2 border">Amount</th>
+                      <th className="p-2 border">Due</th>
+                      <th className="p-2 border">Method</th>
+                      <th className="p-2 border">Paid By</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {history.map((h) => (
+                      <tr key={h._id}>
+                        <td className="p-2 border">{new Date(h.paymentDate).toLocaleString()}</td>
+                        <td className="p-2 border">₹{h.amountPaid}</td>
+                        <td className="p-2 border">₹{h.amountDue}</td>
+                        <td className="p-2 border">{h.method}</td>
+                        <td className="p-2 border">{h.clientName}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

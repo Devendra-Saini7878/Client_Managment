@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useUserContext } from '../context/UserContext';
 
+
 export default function Sidebar() {
   const navigate = useNavigate();
   const { email, setToken, setEmail } = useUserContext(); // ✅ from your context

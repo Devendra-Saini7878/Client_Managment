@@ -8,11 +8,22 @@ import Register from './components/Register';
 import ChannelSummary from './components/ChannelSummary';
 import { useUserContext } from './context/UserContext';
 import PaymentHistory from './components/PaymentHistory';
+import { attachInterceptors } from './utils/axiosInstance';
 
 export default function App() {
-  const { token } = useUserContext();         // ✅ Get token from context
+  const { token, setToken } = useUserContext();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // ✅ Attach interceptors
+  useEffect(() => {
+    attachInterceptors(logout, () => token);
+  }, [token, setToken]);
+
+  const logout = () => {
+    setToken(null);
+    navigate('/login');
+  };
 
   // Redirect to login if not authenticated
   useEffect(() => {

@@ -100,8 +100,31 @@ router.post("/pay", auth, async (req, res) => {
   }
 });
 
+
+// ✅ Payment History with optional channel filter
+router.get("/history", auth, async (req, res) => {
+  try {
+    const { channelName } = req.query;
+
+    const query = { userId: req.user.id };
+    if (channelName) {
+      query.channelName = { $regex: new RegExp(`^${channelName}$`, "i") };
+    }
+
+    const history = await PaymentHistory.find(query).sort({
+      paymentDate: -1,
+    });
+
+    res.json(history);
+  } catch (err) {
+    console.error("Payment history fetch error:", err);
+    res.status(500).json({ message: "Failed to fetch payment history." });
+  }
+});
+
+
 // ✅ Route to mark all dues as paid
-// ✅ Route to mark all dues as paid
+
 router.post("/pay-all", auth, async (req, res) => {
   const { channelName, method = "cash" } = req.body;
 

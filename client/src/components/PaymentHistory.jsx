@@ -3,6 +3,8 @@ import axios from 'axios';
 
 export default function PaymentHistory({ token }) {
   const [history, setHistory] = useState([]);
+  const [search, setSearch] = useState('');
+  const [filteredHistory, setFilteredHistory] = useState([]);
 
   useEffect(() => {
     const fetchPayments = async () => {
@@ -11,6 +13,7 @@ export default function PaymentHistory({ token }) {
           headers: { Authorization: `Bearer ${token}` }
         });
         setHistory(res.data);
+        setFilteredHistory(res.data);
       } catch {
         console.error('Failed to fetch history');
       }
@@ -18,10 +21,32 @@ export default function PaymentHistory({ token }) {
     fetchPayments();
   }, [token]);
 
+  useEffect(() => {
+    if (!search.trim()) {
+      setFilteredHistory(history);
+    } else {
+      setFilteredHistory(
+        history.filter(h =>
+          h.channelName &&
+          h.channelName.toLowerCase().includes(search.trim().toLowerCase())
+        )
+      );
+    }
+  }, [search, history]);
+
   return (
     <div className="max-w-6xl mx-auto mt-10 bg-gradient-to-br from-blue-50 via-white to-gray-100 p-6 rounded-xl shadow-lg">
       <h2 className="text-2xl font-bold mb-6 text-center text-blue-700 tracking-wide">Payment History</h2>
-      {history.length === 0 ? (
+      <div className="flex justify-end mb-4">
+        <input
+          type="text"
+          placeholder="Search by channel name..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="border border-blue-200 rounded-lg px-4 py-2 w-72 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
+        />
+      </div>
+      {filteredHistory.length === 0 ? (
         <p className="text-gray-500 text-center py-10">No payment history found.</p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-inner bg-white scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-blue-50" style={{ maxHeight: '420px', minWidth: '900px' }}>
@@ -37,7 +62,7 @@ export default function PaymentHistory({ token }) {
               </tr>
             </thead>
             <tbody>
-              {history.map((h, i) => (
+              {filteredHistory.map((h, i) => (
                 <tr
                   key={h._id}
                   className={`transition hover:bg-blue-50 ${i % 2 === 0 ? "bg-white" : "bg-blue-50"}`}
