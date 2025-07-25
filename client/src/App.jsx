@@ -47,7 +47,7 @@ export default function App() {
   return (
     <div className="flex w-full max-h-screen bg-gray-100 overflow-y-hidden ">
       <Sidebar />
-      <div className="flex-1  p-0">
+      <div className="flex-1  overflow-y-auto p-0">
         <Routes>
           <Route path="/" element={<Navigate to="/client" />} />
           <Route path="/add" element={<AddDataForm token={token} />} />

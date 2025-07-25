@@ -44,7 +44,7 @@ export default function Sidebar() {
 
       <button
         onClick={handleLogout}
-        className="bg-red-500 text-white mt-6 px-4 py-2 rounded hover:bg-red-600"
+        className="bg-gradient-to-r from-red-400 to-pink-500  text-white mt-6 px-4 py-2 rounded hover:bg-red-600"
       >
         Logout
       </button>
